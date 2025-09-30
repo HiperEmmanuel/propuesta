@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Liliana: Con amor</title>
+    <!-- Incluye Tailwind CSS para un diseño responsivo y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluye Google Fonts: Comic Neue (juguetona) y Inter (limpia) -->
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Paleta de colores: Marrón Miel (#D2B48C), Verde Jungla (#38761D), Amarillo Soleado (#FFD700), Rosa Coral (#FF6F61) */
+        
+        :root {
+            --color-honey: #D2B48C;
+            --color-jungle: #38761D;
+            --color-sun: #FFD700;
+            --color-coral: #FF6F61;
+            --font-display: 'Comic Neue', cursive;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: #f7f3e8; /* Base color */
+            transition: filter 0.5s ease-in-out;
+        }
+
+        /* Estilo para simular un fondo de jungla ilustrado */
+        .jungle-bg {
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 118, 29, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 215, 0, 0.2) 0%, transparent 40%),
+                linear-gradient(to top, #f7f3e8 0%, #E0D4B8 100%);
+            background-size: 100% auto;
+        }
+
+        /* Animación de corazón flotante */
+        @keyframes floatHeart {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+            50% { transform: translateY(-30px) rotate(5deg); opacity: 1; }
+            100% { transform: translateY(0) rotate(-5deg); opacity: 0.8; }
+        }
+
+        .floating-heart {
+            animation: floatHeart 4s ease-in-out infinite;
+        }
+        
+        /* Botón Revelador con efecto burbuja */
+        .reveal-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 0 var(--color-jungle);
+        }
+        .reveal-button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Carrusel horizontal */
+        .carousel-snap {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch; /* Optimización para iOS */
+        }
+        .carousel-item {
+            scroll-snap-align: center;
+            flex-shrink: 0;
+            width: 85%; /* Ajuste para móvil, para ver una parte del siguiente elemento */
+        }
+
+        /* Efecto de blanco y negro para la respuesta "NO" */
+        .grayscale-mode {
+            filter: grayscale(100%);
+        }
+
+        /* Confeti y Emmanuel-Emojis (usamos el emoji 🐒 como placeholder) */
+        .confetti-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 100;
+        }
+        
+        @keyframes fall {
+            0% { transform: translate(0, -100px) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--x), 100vh) rotate(var(--rot)); opacity: 0; }
+        }
+
+        .confetti-piece {
+            position: absolute;
+            font-size: 24px;
+            animation: fall var(--duration) linear forwards;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+        }
+
+        /* Clases para manejar el video en el carrusel */
+        .video-hidden {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.2s;
+        }
+        .video-visible {
+            opacity: 1;
+        }
+        
+        /* Ocultar elementos inicialmente */
+        #theQuestion, #responseButtons, #resultMessage, #audioPlayerContainer {
+            display: none;
+        }
+
+    </style>
+</head>
+<body class="jungle-bg">
+
+    <!-- Contenedor principal para toda la página -->
+    <div id="mainContainer" class="min-h-screen pb-20 overflow-x-hidden">
+
+        <!-- Corazones Flotantes (Animación Global) -->
+        <div id="heartContainer" class="fixed inset-0 pointer-events-none overflow-hidden z-10">
+            <!-- Corazones generados por JS -->
+        </div>
+
+        <!-- SECCIÓN 1: PORTADA -->
+        <section id="sectionCover" class="pt-20 pb-10 px-4 text-center">
+            <h1 class="text-6xl font-display text-gray-800 leading-tight">
+                ¡Para <span class="text-[var(--color-coral)] shadow-md px-2 rounded-xl">Liliana</span>!
+            </h1>
+            <p class="mt-4 text-xl font-body text-gray-600">
+                Alguien tiene una pregunta muy importante... 🐒
+            </p>
+            <img src="https://placehold.co/200x200/FF6F61/FFFFFF?text=Mono+Ilustrado" alt="Ilustración de mono capuchino" class="w-32 mx-auto mt-6 rounded-full shadow-lg border-4 border-white transform hover:scale-105 transition duration-300">
+        </section>
+
+        <!-- --- -->
+
+        <!-- SECCIÓN 2: GALERÍA INTERACTIVA "NUESTRA JUNGLA" -->
+        <section id="sectionGallery" class="py-10 bg-white bg-opacity-70 backdrop-blur-sm shadow-inner mt-8">
+            <h2 class="text-3xl font-display text-[var(--color-jungle)] text-center mb-6">Nuestra Jungla de Momentos Felices</h2>
+            
+            <!-- Carrusel Horizontal para Fotos -->
+            <div id="photoCarousel" class="flex overflow-x-scroll carousel-snap px-4 space-x-4">
+                
+                <!-- ITEM 1: GIF Animado (Placeholder) -->
+                <div class="carousel-item p-2 bg-white rounded-xl shadow-xl border-4 border-[var(--color-sun)]">
+                    <h3 class="font-bold text-center text-sm mb-1 text-gray-700">Emmanuel-GIF (¡Hola Lili!)</h3>
+                    <img id="emmanuelGif" 
+                         src="https://placehold.co/400x500/D2B48C/FFFFFF?text=Reemplazar+con+GIF+de+Emmanuel+Haciendo+Muecas" 
+                         alt="GIF de Emmanuel haciendo muecas de mono" 
+                         class="w-full h-auto rounded-lg object-cover aspect-[4/5] min-w-[300px]"
+                         onerror="this.onerror=null;this.src='https://placehold.co/400x500/D2B48C/FFFFFF?text=Error+Carga+GIF'">
+                    <!-- NOTA PARA EMMANUEL: Reemplaza el 'src' con la URL de tu GIF animado -->
+                </div>
+
+                <!-- ITEM 2: Foto Estática Normal (Placeholder) -->
+                <div class="carousel-item p-2 bg-white rounded-xl shadow-xl border-4 border-[var(--color-coral)]">
+                    <h3 class="font-bold text-center text-sm mb-1 text-gray-700">Aventuras Juntos 1</h3>
+                    <img src="uploaded:IMG-20250930-WA0016.jpg-9ffff9f1-9778-4ef9-973b-971e1e676152" 
+                         alt="Foto de la pareja en la playa" 
+                         class="w-full h-auto rounded-lg object-cover aspect-[4/5] min-w-[300px]">
+                </div>
+
+                <!-- ITEM 3: Efecto "Foto que Cobra Vida" (Touch/Hold) -->
+                <div id="livePhotoContainer" class="carousel-item p-2 bg-white rounded-xl shadow-xl border-4 border-[var(--color-jungle)] relative"
+                     title="Mantén presionado (o toca y mantén) para ver el mensaje">
+                    <h3 class="font-bold text-center text-sm mb-1 text-gray-700">¡Foto que cobra vida! 👁️</h3>
+                    
+                    <!-- Imagen Estática (Visible por defecto) -->
+                    <img id="staticImage" 
+                         src="uploaded:IMG-20250930-WA0015.jpg-c10133b5-c164-4a7c-aa92-e47c29712bb9" 
+                         alt="Foto estática de Emmanuel y Liliana" 
+                         class="w-full h-auto rounded-lg object-cover aspect-[4/5] transition-opacity duration-200 min-w-[300px] opacity-100">
+                    
+                    <!-- Video Corto (Inicialmente oculto y posicionado sobre la imagen) -->
+                    <video id="liveVideo" class="video-hidden rounded-lg aspect-[4/5] object-cover" preload="none" muted>
+                        <!-- NOTA PARA EMMANUEL: Reemplaza este 'src' con la URL de tu video corto (3s) -->
+                        <source src="https://example.com/reemplazar-con-video-corto-emmanuel.mp4" type="video/mp4">
+                        Tu navegador no soporta el elemento de video.
+                    </video>
+                    <!-- Fallback para video -->
+                    <div id="videoPlaceholder" class="video-hidden flex items-center justify-center bg-gray-200 text-sm text-gray-500 rounded-lg aspect-[4/5] object-cover">
+                        [REEMPLAZAR CON VIDEO - URL FALLÓ]
+                    </div>
+                </div>
+
+                <!-- ITEM 4: Otra Foto Estática Normal (Placeholder) -->
+                <div class="carousel-item p-2 bg-white rounded-xl shadow-xl border-4 border-[var(--color-honey)]">
+                    <h3 class="font-bold text-center text-sm mb-1 text-gray-700">Aventuras Juntos 2</h3>
+                    <img src="uploaded:IMG-20250930-WA0018.jpg-8594e030-04a8-4d7a-aa4a-6f7012448357" 
+                         alt="Foto de la pareja con luces" 
+                         class="w-full h-auto rounded-lg object-cover aspect-[4/5] min-w-[300px]">
+                </div>
+
+            </div>
+        </section>
+
+        <!-- --- -->
+
+        <!-- SECCIÓN 3: LA GRAN PREGUNTA -->
+        <section id="sectionQuestion" class="mt-12 px-6 py-12 bg-[var(--color-honey)] bg-opacity-90 rounded-t-3xl shadow-2xl relative z-20">
+            
+            <p class="text-center text-xl font-body text-gray-800 mb-6">
+                Liliana, después de tantas aventuras, risas, y monos...
+            </p>
+
+            <div class="flex flex-col items-center justify-center space-y-6">
+                
+                <!-- Botón Revelador Inicial -->
+                <button id="revealButton" class="reveal-button bg-[var(--color-sun)] hover:bg-yellow-500 text-[var(--color-jungle)] font-display text-2xl py-4 px-8 rounded-full transition duration-300">
+                    ¡Descubre la Pregunta! 🐒
+                </button>
+                
+                <!-- Contenedor de la Pregunta (Inicialmente oculto) -->
+                <div id="theQuestion" class="text-center">
+                    <p class="text-4xl font-display text-gray-900 leading-snug mb-8 animate-pulse">
+                        ¿Puedo ser tu <span class="text-[var(--color-coral)]">monkeynovio</span> y pasar a una nueva etapa en nuestra vida?
+                    </p>
+                </div>
+
+                <!-- Botones de Respuesta (Inicialmente ocultos) -->
+                <div id="responseButtons" class="flex justify-center space-x-6">
+                    <button id="yesButton" class="bg-pink-500 hover:bg-pink-600 text-white font-bold text-2xl py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300 ring-4 ring-pink-300">
+                        ¡SÍ! ❤️
+                    </button>
+                    <button id="noButton" class="bg-gray-400 hover:bg-gray-500 text-white font-bold text-2xl py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300 ring-4 ring-gray-300">
+                        No 😢
+                    </button>
+                </div>
+
+                <!-- Mensaje de Resultado (Inicialmente oculto) -->
+                <div id="resultMessage" class="mt-8 p-6 bg-white rounded-xl shadow-2xl text-center">
+                    <p id="resultText" class="text-3xl font-display"></p>
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <!-- SECCIÓN 4: AUDIO (Opcional, se reproduce al decir SÍ) -->
+    <div id="audioPlayerContainer" class="fixed bottom-0 left-0 right-0 p-4 bg-green-900 text-white text-center shadow-inner z-50">
+        <p class="text-sm mb-2">¡Música para celebrar nuestro SÍ! 🥳</p>
+        <!-- NOTA PARA EMMANUEL: Reemplaza este 'src' con la URL de una canción romántica (mp3) -->
+        <audio id="celebrationAudio" controls autoplay loop>
+            <source src="https://example.com/reemplazar-con-cancion-romantica.mp3" type="audio/mp3">
+            Tu navegador no soporta el reproductor de audio.
+        </audio>
+    </div>
+
+    <!-- Contenedor para la explosión de confeti -->
+    <div id="confettiOverlay" class="confetti-overlay"></div>
+
+
+    <script>
+        const DURATION_VIDEO = 3000; // 3 segundos para el video
+
+        // ------------------------------------------------------------------
+        // 1. CONFIGURACIÓN INICIAL DE LA PÁGINA Y ELEMENTOS
+        // ------------------------------------------------------------------
+        const body = document.body;
+        const mainContainer = document.getElementById('mainContainer');
+        const heartContainer = document.getElementById('heartContainer');
+        const livePhotoContainer = document.getElementById('livePhotoContainer');
+        const staticImage = document.getElementById('staticImage');
+        const liveVideo = document.getElementById('liveVideo');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const revealButton = document.getElementById('revealButton');
+        const theQuestion = document.getElementById('theQuestion');
+        const responseButtons = document.getElementById('responseButtons');
+        const yesButton = document.getElementById('yesButton');
+        const noButton = document.getElementById('noButton');
+        const resultMessage = document.getElementById('resultMessage');
+        const resultText = document.getElementById('resultText');
+        const confettiOverlay = document.getElementById('confettiOverlay');
+        const celebrationAudio = document.getElementById('celebrationAudio');
+        const audioPlayerContainer = document.getElementById('audioPlayerContainer');
+
+
+        // Emojis y colores para el confeti
+        const confettiItems = ['❤️', '🐒', '💖', '✨', '💍'];
+        // Placeholder para los stickers de Emmanuel (Emojis de mono en este caso)
+        const emmanuelEmojis = ['🐒', '😃', '😍', '🥳']; 
+
+        // ------------------------------------------------------------------
+        // 2. FUNCIONES DE ANIMACIÓN
+        // ------------------------------------------------------------------
+
+        /**
+         * Genera corazones flotantes animados en el fondo.
+         */
+        function createFloatingHearts() {
+            const numHearts = 15;
+            for (let i = 0; i < numHearts; i++) {
+                const heart = document.createElement('span');
+                heart.innerHTML = '❤️'; // Unicode heart
+                heart.classList.add('floating-heart');
+                
+                // Posición y tamaño aleatorios
+                const size = Math.random() * 20 + 10; // 10px a 30px
+                heart.style.fontSize = `${size}px`;
+                heart.style.left = `${Math.random() * 100}vw`;
+                heart.style.top = `${Math.random() * 100}vh`;
+                heart.style.animationDelay = `${Math.random() * -4}s`; // Iniciar en diferentes fases
+                heart.style.animationDuration = `${Math.random() * 5 + 4}s`;
+                heart.style.zIndex = Math.random() < 0.5 ? '1' : '30'; // Algunos detrás, algunos delante del contenido
+                
+                heartContainer.appendChild(heart);
+            }
+        }
+        
+        /**
+         * Lanza una explosión de confeti (corazones y Emmanuel-Emojis).
+         */
+        function launchConfetti() {
+            const numPieces = 80;
+            confettiOverlay.innerHTML = ''; // Limpiar confeti anterior
+            
+            for (let i = 0; i < numPieces; i++) {
+                const piece = document.createElement('span');
+                const isEmmanuel = Math.random() < 0.25; // 25% de probabilidad para Emmanuel-Emoji
+                
+                piece.innerHTML = isEmmanuel 
+                                    ? emmanuelEmojis[Math.floor(Math.random() * emmanuelEmojis.length)]
+                                    : confettiItems[Math.floor(Math.random() * confettiItems.length)];
+
+                piece.classList.add('confetti-piece');
+                
+                // Parámetros aleatorios para la animación
+                piece.style.setProperty('--x', `${Math.random() * 300 - 150}px`);
+                piece.style.setProperty('--rot', `${Math.random() * 360}deg`);
+                piece.style.setProperty('--duration', `${Math.random() * 4 + 3}s`);
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.top = `${-20}px`;
+                
+                confettiOverlay.appendChild(piece);
+            }
+        }
+
+
+        // ------------------------------------------------------------------
+        // 3. LÓGICA DE LA GALERÍA INTERACTIVA (FOTO QUE COBRA VIDA)
+        // ------------------------------------------------------------------
+        
+        // Función para mostrar el video
+        function showVideo(event) {
+            // Previene el scroll o comportamiento por defecto del touch/mouse
+            event.preventDefault(); 
+            staticImage.style.opacity = '0';
+            
+            // Si el video tiene URL, lo reproducimos
+            if (liveVideo.querySelector('source').src.includes('http')) {
+                liveVideo.classList.remove('video-hidden');
+                liveVideo.classList.add('video-visible');
+                liveVideo.currentTime = 0; // Asegura que empieza desde el inicio
+                liveVideo.play();
+                videoPlaceholder.classList.add('video-hidden');
+            } else {
+                // Si la URL es la de placeholder, muestra un mensaje
+                videoPlaceholder.classList.remove('video-hidden');
+            }
+        }
+
+        // Función para ocultar el video
+        function hideVideo() {
+            staticImage.style.opacity = '1';
+            liveVideo.pause();
+            liveVideo.classList.remove('video-visible');
+            liveVideo.classList.add('video-hidden');
+            videoPlaceholder.classList.add('video-hidden');
+        }
+
+        // Eventos para el efecto "Foto que Cobra Vida"
+        // MOUSE Events (para escritorio o prueba)
+        livePhotoContainer.addEventListener('mousedown', showVideo);
+        livePhotoContainer.addEventListener('mouseup', hideVideo);
+        livePhotoContainer.addEventListener('mouseleave', hideVideo);
+
+        // TOUCH Events (Móvil/iPhone - CRUCIAL)
+        livePhotoContainer.addEventListener('touchstart', showVideo);
+        livePhotoContainer.addEventListener('touchend', hideVideo);
+        // Si el dedo se mueve demasiado, podría cancelar el evento, pero 'touchend' suele ser suficiente
+
+
+        // ------------------------------------------------------------------
+        // 4. LÓGICA DE LA PREGUNTA
+        // ------------------------------------------------------------------
+
+        /**
+         * Muestra la pregunta y los botones de respuesta.
+         */
+        revealButton.addEventListener('click', () => {
+            // Animación: el botón desaparece
+            revealButton.classList.add('opacity-0', 'scale-0');
+            revealButton.disabled = true;
+
+            setTimeout(() => {
+                revealButton.style.display = 'none'; // Desaparece del layout
+                
+                // Muestra la pregunta y botones
+                theQuestion.style.display = 'block';
+                responseButtons.style.display = 'flex';
+                
+                // Añade animación de aparición
+                theQuestion.classList.add('animate-fadeIn');
+                responseButtons.classList.add('animate-fadeIn');
+            }, 300);
+        });
+
+
+        // ------------------------------------------------------------------
+        // 5. LÓGICA DE LAS RESPUESTAS
+        // ------------------------------------------------------------------
+
+        /**
+         * Maneja la respuesta positiva ("SÍ").
+         */
+        yesButton.addEventListener('click', () => {
+            // Oculta botones de respuesta
+            responseButtons.style.display = 'none';
+            
+            // Mensaje de éxito
+            resultText.innerHTML = "¡SABÍA QUE DIRÍAS QUE SÍ! ¡ERES LA MEJOR! TE AMO ❤️🐒";
+            resultText.classList.remove('text-gray-900', 'text-red-600');
+            resultText.classList.add('text-[var(--color-jungle)]', 'text-4xl');
+            resultMessage.style.display = 'block';
+            resultMessage.classList.add('animate-bounceIn');
+
+            // Efectos especiales: Confeti y Audio
+            launchConfetti();
+            
+            // Mostrar reproductor de audio y intentar reproducir
+            audioPlayerContainer.style.display = 'block';
+            try {
+                celebrationAudio.play();
+            } catch (error) {
+                console.error("Error al intentar reproducir el audio automáticamente:", error);
+                // Si falla la reproducción automática, el usuario puede darle play manualmente
+            }
+
+            // Simulación de risa de mono (usando Tone.js para un sonido simple si estuviera disponible)
+            // Por simplicidad, aquí solo mostramos un log
+            console.log("¡Risa de mono feliz!");
+        });
+
+
+        /**
+         * Maneja la respuesta negativa ("NO").
+         */
+        noButton.addEventListener('click', () => {
+            // Paso 1: Modo Blanco y Negro
+            body.classList.add('grayscale-mode');
+            heartContainer.innerHTML = ''; // Eliminar corazones animados
+
+            // Ocultar botones de respuesta y mostrar mensaje triste
+            responseButtons.style.display = 'none';
+            resultText.innerHTML = "La jungla ha perdido todo su color...";
+            resultText.classList.remove('text-[var(--color-jungle)]');
+            resultText.classList.add('text-gray-900', 'text-2xl');
+            resultMessage.style.display = 'block';
+            resultMessage.classList.add('animate-fadeIn');
+
+            // Paso 2: Mensaje divertido y recuperación de color después de 3 segundos
+            setTimeout(() => {
+                resultText.innerHTML = "¡Es broma! ¡Tienes que decir que SÍ! 😉";
+                resultText.classList.add('text-red-600');
+                
+                // Recuperar color y animaciones
+                body.classList.remove('grayscale-mode');
+                createFloatingHearts(); // Volver a iniciar corazones
+                
+                // Volver a mostrar los botones de respuesta
+                setTimeout(() => {
+                    resultMessage.style.display = 'none';
+                    responseButtons.style.display = 'flex';
+                }, 1500); // Dar 1.5s para leer la broma
+
+            }, 3000); // 3 segundos en blanco y negro
+        });
+
+
+        // ------------------------------------------------------------------
+        // 6. INICIALIZACIÓN
+        // ------------------------------------------------------------------
+        
+        window.onload = () => {
+            // Inicializa la animación de corazones
+            createFloatingHearts();
+            console.log("Página de propuesta 'MonkeyNovio' cargada y lista para Liliana.");
+            
+            // Comprobación de Fallback de Video
+            if (!liveVideo.querySelector('source').src.includes('http')) {
+                console.warn("ADVERTENCIA: La URL del video de 'Foto que Cobra Vida' es un marcador de posición. ¡Reemplazar!");
+            }
+            if (celebrationAudio.querySelector('source').src.includes('http')) {
+                console.warn("ADVERTENCIA: La URL del audio de celebración es un marcador de posición. ¡Reemplazar!");
+            }
+        };
+
+    </script>
+</body>
+</html>
